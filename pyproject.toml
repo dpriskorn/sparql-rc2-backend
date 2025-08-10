@@ -1,0 +1,20 @@
+[project]
+name = "sparql-recent-changes-backend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Nizo Priskorn",email = "68460690+dpriskorn@users.noreply.github.com"}
+]
+license = {text = "GPLv3+"}
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "pydantic (>=2.11.7,<3.0.0)",
+    "fastapi (>=0.116.1,<0.117.0)",
+    "pymysql (>=1.1.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
