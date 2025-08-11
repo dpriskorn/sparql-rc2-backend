@@ -77,23 +77,20 @@ def get_revisions(
 
     placeholders = ",".join(["%s"] * len(entities_list))
     # 0=items 102=entityschema 120=properties 146=lexeme
-    sql_page_ids = f"""
-        SELECT DISTINCT page_id
-        FROM page
-        WHERE page_namespace IN (0,102,120,146)
-        AND page_title IN ({placeholders})
-    """
-
     sql_revisions = f"""
-        SELECT * FROM revision_compat
-        WHERE rev_page IN ({sql_page_ids})
-        AND rev_timestamp BETWEEN %s AND %s
+        SELECT r.*, p.page_title AS entity_id
+        FROM revision_compat r
+        JOIN page p
+            ON r.rev_page = p.page_id
+        WHERE p.page_namespace IN (0,102,120,146)
+          AND p.page_title IN ({placeholders})
+          AND r.rev_timestamp BETWEEN %s AND %s
     """
     params = entities_list + [start_date, end_date]
 
     if no_bots:
         sql_revisions += """
-            AND rev_user NOT IN (
+            AND r.rev_user NOT IN (
                 SELECT ug_user FROM user_groups WHERE ug_group='bot'
             )
         """
@@ -101,45 +98,69 @@ def get_revisions(
     cursor.execute(sql_revisions, params)
     rows = cursor.fetchall()
 
-    temp = {}
+    revisions_by_page = {}
 
-    for o in rows:
-        page_id = o["rev_page"]
-        key = str(page_id)
-        u_key = f"{o['rev_user']}|{o['rev_user_text']}"
+    for revision in rows:
+        # Extract the page ID for the current revision
+        page_id = revision["rev_page"]
 
-        if key not in temp:
-            temp[key] = {
-                "page_id": page_id,
-                "earliest": o.copy(),
-                "latest": o.copy(),
-                "note": "",
-                "users": {u_key: 1}
+        # Use string form of page_id as dictionary key (dict keys must be hashable and comparable)
+        page_key = str(page_id)
+
+        # Create a unique identifier for the user, combining ID and username
+        user_key = f"{revision['rev_user']}|{revision['rev_user_text']}"
+
+        # If this page hasn't been seen before, initialize its entry
+        if page_key not in revisions_by_page:
+            revisions_by_page[page_key] = {
+                "page_id": page_id,  # Numeric page ID
+                "entity_id": revision["entity_id"],  # Wikidata entity ID (e.g., Q42, L1)
+                "earliest": revision.copy(),  # Earliest revision found so far (start with current one)
+                "latest": revision.copy(),  # Latest revision found so far (start with current one)
+                "note": "",  # Placeholder for any notes
+                "users": {user_key: 1}  # Dict of users and their edit counts (start with 1)
             }
-            continue
+            continue  # Skip to next revision since initialization is done
 
-        if temp[key]["earliest"]["rev_timestamp"] > o["rev_timestamp"]:
-            temp[key]["earliest"] = o.copy()
+        # Update earliest revision if the current revision is older (smaller timestamp)
+        if revisions_by_page[page_key]["earliest"]["rev_timestamp"] > revision["rev_timestamp"]:
+            revisions_by_page[page_key]["earliest"] = revision.copy()
 
-        if temp[key]["latest"]["rev_timestamp"] < o["rev_timestamp"]:
-            temp[key]["latest"] = o.copy()
+        # Update latest revision if the current revision is newer (larger timestamp)
+        if revisions_by_page[page_key]["latest"]["rev_timestamp"] < revision["rev_timestamp"]:
+            revisions_by_page[page_key]["latest"] = revision.copy()
 
-        temp[key]["users"][u_key] = temp[key]["users"].get(u_key, 0) + 1
+        # Increment the edit count for this user on the current page
+        revisions_by_page[page_key]["users"][user_key] = (
+                revisions_by_page[page_key]["users"].get(user_key, 0) + 1
+        )
 
-    # Konvertera users-dict till lista av UserCount
+    # Convert the "users" dictionary for each page into a list of UserCount objects
     result = []
-    for entry in temp.values():
-        user_list = []
-        for u_key, count in entry["users"].items():
-            uid, uname = u_key.split("|", 1)
-            user_list.append(UserCount(user_id=int(uid), username=uname, count=count))
 
-        result.append(Revisions(
-            page_id=entry["page_id"],
-            earliest=Revision(**entry["earliest"]),
-            latest=Revision(**entry["latest"]),
-            note=entry["note"],
-            users=user_list
-        ))
+    # Iterate over each page's collected revision data
+    for page_data in revisions_by_page.values():
+        user_list = []
+
+        # Go through all users who edited this page and their edit counts
+        for user_key, count in page_data["users"].items():
+            # Split the combined "user_id|username" string back into ID and username
+            user_id_str, username = user_key.split("|", 1)
+
+            # Create a UserCount object and add it to the list
+            user_list.append(
+                UserCount(user_id=int(user_id_str), username=username, count=count)
+            )
+
+        result.append(
+            Revisions(
+                page_id=page_data["page_id"],
+                entity_id=page_data["entity_id"],
+                earliest=Revision(**page_data["earliest"]),
+                latest=Revision(**page_data["latest"]),
+                note=page_data["note"],
+                users=user_list
+            )
+        )
 
     return result
