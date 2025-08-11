@@ -19,7 +19,7 @@ in maintaining data quality and consistency.
 First stop, build and then start
 * `$ toolforge webservice buildservice stop`
 * `$ toolforge build start --use-latest-versions https://github.com/dpriskorn/sparql-rc2-backend.git`
-* `$ toolforge webservice buildservice start --mount=none`
+* `$ toolforge webservice buildservice restart --mount=none`
 
 Debug using
-* `$ webservice logs` 
+* `$ webservice logs -f` 
