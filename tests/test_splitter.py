@@ -4,6 +4,7 @@ from pydantic import ValidationError
 from models.splitter import Splitter
 
 
+# noinspection PyTypeChecker
 class TestSplitter(unittest.TestCase):
 
     def test_splitter_with_comma_separated_string(self):

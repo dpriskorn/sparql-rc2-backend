@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 from datetime import datetime, timezone, timedelta
@@ -12,9 +11,9 @@ from pydantic import ValidationError
 import config
 from models.aggregator import Aggregator
 from models.read import Read
+from models.revisions import Revisions
 from models.splitter import Splitter
 from models.validator import Validator
-from models.revisions import Revisions
 
 if "USER" not in os.environ:
     os.environ["USER"] = "tools.sparql-rc2-backend"
