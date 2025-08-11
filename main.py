@@ -26,6 +26,7 @@ logging.basicConfig(level=config.LOGLEVEL)
 logger = logging.getLogger(__name__)
 
 
+# noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # startup code
@@ -54,7 +55,7 @@ def get_revisions(
     entities: str = Query(..., description="Comma-separated list of entity IDs, e.g. Q42,L1"),
     start_date: str = Query(default=(datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y%m%d%H%M%S")),
     end_date: str = Query(default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")),
-    no_bots: bool = Query(default=False,description="If True, revisions made by bot accounts are excluded. Defaults to False."),
+    no_bots: bool = Query(default=False, description="If True, revisions made by bot accounts are excluded. Defaults to False."),
     only_unpatrolled: bool = Query(default=False, description="Only return unpatrolled edits")
 ):
     """
@@ -77,6 +78,7 @@ def get_revisions(
         end_date (str, optional): End of the revision date range in "YYYYMMDDHHMMSS" format.
             Defaults to the current UTC time.
         no_bots (bool, optional): If True, revisions made by bot accounts are excluded. Defaults to False.
+        only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
 
     Returns:
         List[Revisions]: A list of aggregated revision objects matching the query parameters.

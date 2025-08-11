@@ -85,6 +85,7 @@ class Read(BaseModel):
                         JOIN page p ON r.rev_page = p.page_id
                         JOIN recentchanges rc ON r.rev_id = rc.rc_this_oldid
                         WHERE p.page_namespace IN (0,102,120,146)
+                          AND rc.rc_patrolled = 0
                           AND p.page_title IN ({placeholders})
                           AND r.rev_timestamp BETWEEN %s AND %s
                     """
