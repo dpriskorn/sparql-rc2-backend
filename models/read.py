@@ -32,7 +32,6 @@ class Read(BaseModel):
     def fetch_revisions(self):
         # Make sure we have a DB connection
         self.connect()
-
         cursor = self.db.cursor()
         placeholders = ",".join(["%s"] * len(self.params.entities))
         """
@@ -56,20 +55,58 @@ class Read(BaseModel):
           'rev_user': Decimal('1433337'),
           'rev_user_text': b'MatSuBot'}
         """
-        sql = f"""
-            SELECT
-            r.rev_id,
-            r.rev_page,
-            r.rev_user,
-            r.rev_user_text,
-            r.rev_timestamp,
-            p.page_title AS entity_id
-            FROM revision_compat r
-            JOIN page p ON r.rev_page = p.page_id
-            WHERE p.page_namespace IN (0,102,120,146)
-              AND p.page_title IN ({placeholders})
-              AND r.rev_timestamp BETWEEN %s AND %s
-        """
+        # sql = f"""
+        #     SELECT
+        #     r.rev_id,
+        #     r.rev_page,
+        #     r.rev_user,
+        #     r.rev_user_text,
+        #     r.rev_timestamp,
+        #     p.page_title AS entity_id
+        #     FROM revision_compat r
+        #     JOIN page p ON r.rev_page = p.page_id
+        #     WHERE p.page_namespace IN (0,102,120,146)
+        #       AND p.page_title IN ({placeholders})
+        #       AND r.rev_timestamp BETWEEN %s AND %s
+        # """
+
+        if self.params.only_unpatrolled:
+            """The inner join discards all revisions not in recent changes"""
+            sql = f"""
+                        SELECT
+                            r.rev_id,
+                            r.rev_page,
+                            r.rev_user,
+                            r.rev_user_text,
+                            r.rev_timestamp,
+                            p.page_title AS entity_id,
+                            rc.rc_patrolled
+                        FROM revision_compat r
+                        JOIN page p ON r.rev_page = p.page_id
+                        JOIN recentchanges rc ON r.rev_id = rc.rc_this_oldid
+                        WHERE p.page_namespace IN (0,102,120,146)
+                          AND p.page_title IN ({placeholders})
+                          AND r.rev_timestamp BETWEEN %s AND %s
+                    """
+        else:
+            """The left join includes all revisions not in recent changes 
+            and fills rc_patrolled with null values"""
+            sql = f"""
+                SELECT
+                    r.rev_id,
+                    r.rev_page,
+                    r.rev_user,
+                    r.rev_user_text,
+                    r.rev_timestamp,
+                    p.page_title AS entity_id,
+                    rc.rc_patrolled
+                FROM revision_compat r
+                JOIN page p ON r.rev_page = p.page_id
+                LEFT JOIN recentchanges rc ON r.rev_id = rc.rc_this_oldid
+                WHERE p.page_namespace IN (0,102,120,146)
+                  AND p.page_title IN ({placeholders})
+                  AND r.rev_timestamp BETWEEN %s AND %s
+            """
         params_list = self.params.entities + [self.params.start_date, self.params.end_date]
 
         if self.params.no_bots:

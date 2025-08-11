@@ -54,7 +54,8 @@ def get_revisions(
     entities: str = Query(..., description="Comma-separated list of entity IDs, e.g. Q42,L1"),
     start_date: str = Query(default=(datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y%m%d%H%M%S")),
     end_date: str = Query(default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")),
-    no_bots: bool = Query(default=False),
+    no_bots: bool = Query(default=False,description="If True, revisions made by bot accounts are excluded. Defaults to False."),
+    only_unpatrolled: bool = Query(default=False, description="Only return unpatrolled edits")
 ):
     """
     Retrieve and aggregate revision data for one or more entities within a specified date range.
@@ -103,6 +104,7 @@ def get_revisions(
             start_date=start_date,
             end_date=end_date,
             no_bots=no_bots,
+            only_unpatrolled=only_unpatrolled
         )
     except ValidationError as e:
         # Forward the error to the user with status 422

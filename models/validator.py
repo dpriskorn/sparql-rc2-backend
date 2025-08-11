@@ -8,6 +8,7 @@ class Validator(BaseModel):
     start_date: str
     end_date: str
     no_bots: bool = False
+    only_unpatrolled: bool = False
 
     # noinspection PyMethodParameters
     @field_validator("entities")
