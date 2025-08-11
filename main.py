@@ -49,7 +49,7 @@ def get_revisions(
             default=datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S"),
             description="End date in YYYYMMDDHHMMSS, defaults to now"
         ),
-        no_bots: bool = Query(default=False, description="Boolean (true/false) that excludes bot edits when set to true")
+        no_bots: bool = Query(default=False, description="If true, revisions made by bot users are excluded.")
 ):
     """
     Get revision data for a list of Wikidata items within a given date range.
@@ -59,7 +59,8 @@ def get_revisions(
     - **end_date**: End of time interval (inclusive) in YYYYMMDDHHMMSS format. Defaults to now.
     - **no_bots**: If true, revisions made by bot users are excluded.
 
-    Returns a list of revisions info grouped by page_id, including earliest and latest revisions and user edit counts.
+    Returns a list of revisions info grouped by page_id, including earliest and latest revisions and user edit counts
+    if there are any edits found within the timeframe.
     """
     # Gör om kommaseparerad sträng till lista
     entities_list = [i.strip() for i in entities.split(",") if i.strip()]
