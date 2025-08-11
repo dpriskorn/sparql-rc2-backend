@@ -5,8 +5,9 @@ from datetime import datetime, timezone, timedelta
 from pprint import pprint
 from typing import List
 
-from fastapi import FastAPI, Query, APIRouter
+from fastapi import FastAPI, Query, APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
+from pydantic import ValidationError
 
 import config
 from models.aggregator import Aggregator
@@ -69,12 +70,19 @@ def get_revisions(
     split_result = Splitter(entities=entities)
 
     # Step 2: validate all input (entities already split)
-    params = Validator(
-        entities=split_result.entities,
-        start_date=start_date,
-        end_date=end_date,
-        no_bots=no_bots,
-    )
+    try:
+        params = Validator(
+            entities=split_result.entities,
+            start_date=start_date,
+            end_date=end_date,
+            no_bots=no_bots,
+        )
+    except ValidationError as e:
+        # Forward the error to the user with status 422
+        raise HTTPException(status_code=422, detail=e.errors())
+    except ValueError as e:
+        # If you want to catch ValueError separately (like in your validators)
+        raise HTTPException(status_code=422, detail=str(e))
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
