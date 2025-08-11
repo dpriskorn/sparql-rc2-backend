@@ -28,7 +28,7 @@ def get_db():
     logger.debug("get_db: running")
 
     return pymysql.connect(
-        host="wikidata.web.db.svc.wikimedia.cloud",
+        host="wikidatawiki.web.db.svc.wikimedia.cloud",
         user=os.environ.get("TOOL_REPLICA_USER"),
         password=os.environ.get("TOOL_REPLICA_PASSWORD"),
         database="wikidatawiki_p",
