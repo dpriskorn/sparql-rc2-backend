@@ -1,7 +1,6 @@
 import logging
 import os
 from datetime import datetime, timezone, timedelta
-from pprint import pprint
 from typing import List, Any
 
 from fastapi import FastAPI, Query, APIRouter, HTTPException

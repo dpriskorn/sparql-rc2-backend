@@ -1,6 +1,5 @@
-from urllib.parse import quote
-
 from pydantic import BaseModel, field_validator, model_validator
+
 import config
 
 
@@ -17,7 +16,7 @@ class Validator(BaseModel):
             raise ValueError(f"Too many entity IDs (max {config.MAX_ENTITY_COUNT})")
         for eid in v:
             if not config.ENTITY_ID_PATTERN.match(eid):
-                raise ValueError(f"Invalid entity ID: {quote(eid)}")
+                raise ValueError(f"Invalid entity ID: {eid}")
         return v
 
     # noinspection PyMethodParameters
