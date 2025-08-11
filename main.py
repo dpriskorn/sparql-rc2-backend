@@ -85,12 +85,12 @@ def get_revisions(
         )
     except ValidationError as e:
         # Forward the error to the user with status 422
-        first_error = e.errors()[0]
-        error = dict(
-            error=True,
-            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
-        )
-        raise HTTPException(status_code=422, detail=error)
+        # first_error = e.errors()[0]
+        # error = dict(
+        #     error=True,
+        #     msg=f"Error at {first_error['loc']}: {first_error['msg']}"
+        # )
+        raise HTTPException(status_code=422, detail=e.errors())
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
@@ -107,12 +107,7 @@ def get_revisions(
         aggregator = Aggregator(revisions=revisions)
     except ValidationError as e:
         # Forward the error to the user with status 422
-        first_error = e.errors()[0]
-        error = dict(
-            error=True,
-            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
-        )
-        raise HTTPException(status_code=422, detail=error)
+        raise HTTPException(status_code=422, detail=e.errors())
     return aggregator.aggregate()
 
 
