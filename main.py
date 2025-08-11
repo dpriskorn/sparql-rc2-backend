@@ -1,7 +1,8 @@
 import logging
+import os
+from datetime import datetime, UTC, timedelta
 
 from fastapi import FastAPI, Query
-import os
 
 import config
 
@@ -10,7 +11,6 @@ if "USER" not in os.environ:
 import pymysql
 from pymysql.cursors import DictCursor
 from typing import List
-import configparser
 
 from models.revision import Revision
 from models.revisions import Revisions
@@ -20,6 +20,7 @@ logging.basicConfig(level=config.loglevel)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
+
 
 # TOOL_NAME = "sparql-rc2-backend"
 
@@ -37,14 +38,29 @@ def get_db():
     )
 
 
-
 @app.get("/revisions", response_model=List[Revisions])
 def get_revisions(
-    items: str = Query(..., description="Comma-separated list of item IDs, e.g. Q42,Q1"),
-    start_date: str = Query(...),
-    end_date: str = Query(...),
-    no_bots: bool = Query(False)
+        items: str = Query(..., description="Comma-separated list of item IDs, e.g. Q42,Q1"),
+        start_date: str = Query(
+            default=(datetime.now(tz=UTC) - timedelta(days=7)).strftime("%Y%m%d%H%M%S"),
+            description="Start date in YYYYMMDDHHMMSS, defaults to one week ago"
+        ),
+        end_date: str = Query(
+            default=datetime.now(tz=UTC).strftime("%Y%m%d%H%M%S"),
+            description="End date in YYYYMMDDHHMMSS, defaults to now"
+        ),
+        no_bots: bool = Query(default=False, description="Boolean (true/false) that excludes bot edits when set to true")
 ):
+    """
+    Get revision data for a list of Wikidata items within a given date range.
+
+    - **items**: Comma-separated list of Wikidata item IDs (e.g., Q42,Q1).
+    - **start_date**: Start of time interval (inclusive) in YYYYMMDDHHMMSS format. Defaults to one week ago.
+    - **end_date**: End of time interval (inclusive) in YYYYMMDDHHMMSS format. Defaults to now.
+    - **no_bots**: If true, revisions made by bot users are excluded.
+
+    Returns a list of revisions info grouped by page_id, including earliest and latest revisions and user edit counts.
+    """
     # Gör om kommaseparerad sträng till lista
     items_list = [i.strip() for i in items.split(",") if i.strip()]
 
