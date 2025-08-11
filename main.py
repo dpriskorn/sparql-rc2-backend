@@ -21,7 +21,7 @@ if "USER" not in os.environ:
 logging.basicConfig(level=config.LOGLEVEL)
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(title="sparql-rc2-backend")
 
 api_router = APIRouter(prefix="/api/v2")
 
