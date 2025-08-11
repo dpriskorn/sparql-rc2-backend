@@ -78,10 +78,8 @@ def get_revisions(
         )
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=str(e))
-    except ValueError as e:
-        # If you want to catch ValueError separately (like in your validators)
-        raise HTTPException(status_code=422, detail=str(e))
+        first_error = e.errors()[0]
+        raise HTTPException(status_code=422, detail=f"Error at {first_error['loc']}: {first_error['msg']}")
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
