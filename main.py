@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 import os
 if "USER" not in os.environ:
     os.environ["USER"] = "tools.sparql-rc2-backend"
@@ -24,11 +24,19 @@ def get_db():
 
 
 @app.get("/revisions", response_model=List[Revisions])
-def get_revisions(items: List[str], start_date: str, end_date: str, no_bots: bool = False):
+def get_revisions(
+    items: str = Query(..., description="Comma-separated list of item IDs, e.g. Q42,Q1"),
+    start_date: str = Query(...),
+    end_date: str = Query(...),
+    no_bots: bool = Query(False)
+):
+    # Gör om kommaseparerad sträng till lista
+    items_list = [i.strip() for i in items.split(",") if i.strip()]
+
     db = get_db()
     cursor = db.cursor(DictCursor)
 
-    placeholders = ",".join(["%s"] * len(items))
+    placeholders = ",".join(["%s"] * len(items_list))
     sql_page_ids = f"""
         SELECT DISTINCT page_id
         FROM page
@@ -41,7 +49,7 @@ def get_revisions(items: List[str], start_date: str, end_date: str, no_bots: boo
         WHERE rev_page IN ({sql_page_ids})
         AND rev_timestamp BETWEEN %s AND %s
     """
-    params = items + [start_date, end_date]
+    params = items_list + [start_date, end_date]
 
     if no_bots:
         sql_revisions += """
