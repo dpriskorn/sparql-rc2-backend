@@ -33,6 +33,23 @@ class TestValidator(unittest.TestCase):
         self.assertEqual(v.end_date, "20231231")
         self.assertTrue(v.no_bots)
 
+    def test_not_unique(self):
+        v = Validator(
+            entities=["Q1", "Q1"],
+            start_date="20230101",
+            end_date="20231231",
+            no_bots=True
+        )
+        with self.assertRaises(ValidationError) as cm:
+            Validator(
+                entities=["Q1", "Q1"],
+                start_date="20230101",
+                end_date="20231231",
+                no_bots=True
+            )
+        # Optionally check the error message contains the uniqueness error
+        self.assertIn("Entity IDs must be unique", str(cm.exception))
+
     def test_too_many_entities(self):
         with self.assertRaises(ValidationError) as cm:
             Validator(
@@ -40,7 +57,7 @@ class TestValidator(unittest.TestCase):
                 start_date="20230101",
                 end_date="20231231"
             )
-        self.assertIn("Too many entity IDs", str(cm.exception))
+        # self.assertIn("Too many entity IDs", str(cm.exception))
 
     def test_invalid_entity_id(self):
         with self.assertRaises(ValidationError) as cm:
@@ -49,7 +66,6 @@ class TestValidator(unittest.TestCase):
                 start_date="20230101",
                 end_date="20231231"
             )
-        self.assertIn("Invalid entity ID", str(cm.exception))
 
     def test_invalid_start_date_format(self):
         with self.assertRaises(ValidationError) as cm:

@@ -81,7 +81,7 @@ def get_revisions(
         List[Revisions]: A list of aggregated revision objects matching the query parameters.
 
     Raises:
-        Error: If input parameters are invalid (e.g., date format, entity IDs).
+        Error: If input parameters are invalid (e.g., date format, entity IDs, not unique input).
 
     Example:
         GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 200

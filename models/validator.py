@@ -14,6 +14,8 @@ class Validator(BaseModel):
     def validate_entities(cls, v):
         if len(v) > config.MAX_ENTITY_COUNT:
             raise ValueError(f"Too many entity IDs (max {config.MAX_ENTITY_COUNT})")
+        if len(v) != len(set(v)):
+            raise ValueError("Entity IDs must be unique (no duplicates)")
         for eid in v:
             if not config.ENTITY_ID_PATTERN.match(eid):
                 raise ValueError(f"Invalid entity ID: {eid}")
