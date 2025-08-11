@@ -1,4 +1,7 @@
 from fastapi import FastAPI
+import os
+if "USER" not in os.environ:
+    os.environ["USER"] = "tools.sparql-rc2-backend"
 import pymysql
 import os
 from typing import List
