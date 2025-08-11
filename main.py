@@ -21,30 +21,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-TOOL_NAME = "sparql-rc2-backend"
-CREDENTIALS_PATH = f"/data/project/{TOOL_NAME}/replica.my.cnf"
+# TOOL_NAME = "sparql-rc2-backend"
 
 
 def get_db():
     logger.debug("get_db: running")
-    # debug
-    try:
-        with open(CREDENTIALS_PATH, "r") as f:
-            content = f.read()
-        logger.debug(f"Contents of {CREDENTIALS_PATH}:\n{content}")
-    except Exception as e:
-        logger.error(f"Failed to read {CREDENTIALS_PATH}: {e}")
-
-    logger.debug(f"Reading credentials from {CREDENTIALS_PATH}")
-    config_parser = configparser.ConfigParser()
-    config_parser.read(CREDENTIALS_PATH)
-    user = config_parser.get("client", "user")
-    password = config_parser.get("client", "password")
 
     return pymysql.connect(
         host="wikidata.web.db.svc.wikimedia.cloud",
-        user=user,
-        password=password,
+        user=os.environ.get("TOOL_REPLICA_USER"),
+        password=os.environ.get("TOOL_REPLICA_PASSWORD"),
         database="wikidatawiki_p",
         charset="utf8mb4",
         cursorclass=DictCursor
