@@ -10,6 +10,8 @@ from contextlib import asynccontextmanager
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.decorator import cache
+from fastapi.middleware.cors import CORSMiddleware
+
 from pydantic import ValidationError
 
 import config
@@ -25,7 +27,6 @@ if "USER" not in os.environ:
 logging.basicConfig(level=config.LOGLEVEL)
 logger = logging.getLogger(__name__)
 
-
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -35,6 +36,13 @@ async def lifespan(app: FastAPI):
     # shutdown code (if needed)
 
 app = FastAPI(title="sparql-rc2-backend", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or list of allowed origins
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 api_router = APIRouter(prefix="/api/v2")
 
 
