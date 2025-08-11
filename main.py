@@ -3,6 +3,7 @@ import os
 from datetime import datetime, UTC, timedelta
 
 from fastapi import FastAPI, Query
+from fastapi.responses import RedirectResponse
 
 import config
 
@@ -36,6 +37,12 @@ def get_db():
         charset="utf8mb4",
         cursorclass=DictCursor
     )
+
+
+@app.get("/", include_in_schema=False)  # Don't include in the API docs
+def root_redirect():
+    # Redirect to the built-in FastAPI Swagger docs
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/revisions", response_model=List[Revisions])
