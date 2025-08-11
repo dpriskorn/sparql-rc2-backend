@@ -83,8 +83,7 @@ def get_revisions(
     finally:
         read.close()
     # Debug to disk
-    with open("/data/project/sparql-rc2-backend/revisions_output.json", "w", encoding="utf-8") as f:
-        json.dump(revisions, f, indent=2, ensure_ascii=False)
+    pprint(revisions[0])
     # Step 4: aggregate and return
     aggregator = Aggregator(revisions=revisions)
     return aggregator.aggregate()
