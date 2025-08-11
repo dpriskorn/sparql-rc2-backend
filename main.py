@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timezone, timedelta
 from pprint import pprint
-from typing import List
+from typing import List, Any
 
 from fastapi import FastAPI, Query, APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
@@ -24,6 +24,17 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="sparql-rc2-backend")
 
 api_router = APIRouter(prefix="/api/v2")
+
+
+def sanitize_errors(errors: Any) -> List[Any]:
+    sanitized_errors_ = []
+    for error in errors.errors():
+        sanitized_errors_.append({
+            "loc": list(error["loc"]),  # tuples to lists
+            "msg": error["msg"],
+            "type": error["type"]
+        })
+    return sanitized_errors_
 
 
 @api_router.get("/revisions", response_model=List[Revisions])
@@ -69,12 +80,7 @@ def get_revisions(
         split_result = Splitter(entities=entities)
     except ValidationError as e:
         # Forward the error to the user with status 422
-        first_error = e.errors()[0]
-        error = dict(
-            error=True,
-            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
-        )
-        raise HTTPException(status_code=422, detail=error)
+        raise HTTPException(status_code=422, detail=sanitize_errors(e))
     # Step 2: validate all input (entities already split)
     try:
         params = Validator(
@@ -85,12 +91,7 @@ def get_revisions(
         )
     except ValidationError as e:
         # Forward the error to the user with status 422
-        # first_error = e.errors()[0]
-        # error = dict(
-        #     error=True,
-        #     msg=f"Error at {first_error['loc']}: {first_error['msg']}"
-        # )
-        raise HTTPException(status_code=422, detail=e.errors())
+        raise HTTPException(status_code=422, detail=sanitize_errors(e))
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
@@ -107,7 +108,7 @@ def get_revisions(
         aggregator = Aggregator(revisions=revisions)
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=e.errors())
+        raise HTTPException(status_code=422, detail=sanitize_errors(e))
     return aggregator.aggregate()
 
 
