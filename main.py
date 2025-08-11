@@ -3,7 +3,7 @@ import os
 if "USER" not in os.environ:
     os.environ["USER"] = "tools.sparql-rc2-backend"
 import pymysql
-import os
+from pymysql.cursors import DictCursor
 from typing import List
 
 from models.revision import Revision
@@ -26,7 +26,7 @@ def get_db():
 @app.get("/revisions", response_model=List[Revisions])
 def get_revisions(items: List[str], start_date: str, end_date: str, no_bots: bool = False):
     db = get_db()
-    cursor = db.cursor(pymysql.cursors.DictCursor)
+    cursor = db.cursor(DictCursor)
 
     placeholders = ",".join(["%s"] * len(items))
     sql_page_ids = f"""
