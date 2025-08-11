@@ -1,6 +1,7 @@
 import logging
 import os
 from datetime import datetime, timezone, timedelta
+from pprint import pprint
 from typing import List
 
 from fastapi import FastAPI, Query, APIRouter
@@ -80,7 +81,8 @@ def get_revisions(
         revisions = read.fetch_revisions()
     finally:
         read.close()
-
+    pprint(revisions[0])
+    exit(0)
     # Step 4: aggregate and return
     aggregator = Aggregator(revisions=revisions)
     return aggregator.aggregate()
