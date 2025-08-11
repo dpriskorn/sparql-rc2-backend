@@ -1,4 +1,7 @@
 import os
+# Fix bug with pymysql
+if "USER" not in os.environ:
+    os.environ["USER"] = "tools.sparql-rc2-backend"
 import pymysql
 from pydantic import BaseModel
 from pymysql.connections import Connection
