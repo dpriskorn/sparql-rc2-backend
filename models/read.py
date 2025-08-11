@@ -35,8 +35,35 @@ class Read(BaseModel):
 
         cursor = self.db.cursor()
         placeholders = ",".join(["%s"] * len(self.params.entities))
+        """
+        Full content looks like this
+         {'entity_id': b'Q1',
+          'rev_actor': 18,
+          'rev_comment': b'/* wbeditentity-update-languages-short:0||knc */ import labe'
+                         b'ls from sitelinks',
+          'rev_comment_id': 839386852,
+          'rev_content_format': None,
+          'rev_content_model': b'wikibase-item',
+          'rev_deleted': 0,
+          'rev_id': 2390482225,
+          'rev_len': 236053,
+          'rev_minor_edit': 0,
+          'rev_page': 129,
+          'rev_parent_id': 2386951001,
+          'rev_sha1': b'nwkuk20g0s6qxbbccgvqrjzkjpqozzi',
+          'rev_text_id': 2389462285,
+          'rev_timestamp': b'20250811025635',
+          'rev_user': Decimal('1433337'),
+          'rev_user_text': b'MatSuBot'}
+        """
         sql = f"""
-            SELECT r.*, p.page_title AS entity_id
+            SELECT
+            r.rev_id,
+            r.rev_page,
+            r.rev_user,
+            r.rev_user_text,
+            r.rev_timestamp,
+            p.page_title AS entity_id
             FROM revision_compat r
             JOIN page p ON r.rev_page = p.page_id
             WHERE p.page_namespace IN (0,102,120,146)

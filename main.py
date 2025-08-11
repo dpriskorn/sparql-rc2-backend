@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from datetime import datetime, timezone, timedelta
@@ -81,8 +82,9 @@ def get_revisions(
         revisions = read.fetch_revisions()
     finally:
         read.close()
-    pprint(revisions[0])
-    exit(0)
+    # Debug to disk
+    with open("/data/project/sparql-rc2-backend/revisions_output.json", "w", encoding="utf-8") as f:
+        json.dump(revisions, f, indent=2, ensure_ascii=False)
     # Step 4: aggregate and return
     aggregator = Aggregator(revisions=revisions)
     return aggregator.aggregate()
