@@ -58,16 +58,23 @@ def get_revisions(
         List[Revisions]: A list of aggregated revision objects matching the query parameters.
 
     Raises:
-        ValidationError: If input parameters are invalid (e.g., date format, entity IDs).
-        DataFetchError: If there is an error retrieving revision data from the source.
+        Error: If input parameters are invalid (e.g., date format, entity IDs).
 
     Example:
-        GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true
-
+        GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 200
+        GET /api/v2/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
     """
     # Step 1: split entities string → list
-    split_result = Splitter(entities=entities)
-
+    try:
+        split_result = Splitter(entities=entities)
+    except ValidationError as e:
+        # Forward the error to the user with status 422
+        first_error = e.errors()[0]
+        error = dict(
+            error=True,
+            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
+        )
+        raise HTTPException(status_code=422, detail=error)
     # Step 2: validate all input (entities already split)
     try:
         params = Validator(
@@ -79,7 +86,11 @@ def get_revisions(
     except ValidationError as e:
         # Forward the error to the user with status 422
         first_error = e.errors()[0]
-        raise HTTPException(status_code=422, detail=f"Error at {first_error['loc']}: {first_error['msg']}")
+        error = dict(
+            error=True,
+            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
+        )
+        raise HTTPException(status_code=422, detail=error)
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
@@ -87,10 +98,21 @@ def get_revisions(
         revisions = read.fetch_revisions()
     finally:
         read.close()
-    # Debug to disk
-    pprint(revisions[0])
+
+    # Debug
+    # pprint(revisions[0])
+
     # Step 4: aggregate and return
-    aggregator = Aggregator(revisions=revisions)
+    try:
+        aggregator = Aggregator(revisions=revisions)
+    except ValidationError as e:
+        # Forward the error to the user with status 422
+        first_error = e.errors()[0]
+        error = dict(
+            error=True,
+            msg=f"Error at {first_error['loc']}: {first_error['msg']}"
+        )
+        raise HTTPException(status_code=422, detail=error)
     return aggregator.aggregate()
 
 
