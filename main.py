@@ -5,6 +5,11 @@ from typing import List, Any
 
 from fastapi import FastAPI, Query, APIRouter, HTTPException
 from fastapi.responses import RedirectResponse
+from contextlib import asynccontextmanager
+
+from fastapi_cache import FastAPICache
+from fastapi_cache.backends.inmemory import InMemoryBackend
+from fastapi_cache.decorator import cache
 from pydantic import ValidationError
 
 import config
@@ -20,8 +25,15 @@ if "USER" not in os.environ:
 logging.basicConfig(level=config.LOGLEVEL)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="sparql-rc2-backend")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # startup code
+    FastAPICache.init(InMemoryBackend())
+    yield
+    # shutdown code (if needed)
+
+app = FastAPI(title="sparql-rc2-backend", lifespan=lifespan)
 api_router = APIRouter(prefix="/api/v2")
 
 
@@ -36,6 +48,7 @@ def sanitize_errors(errors: Any) -> List[Any]:
     return sanitized_errors_
 
 
+@cache(expire=60)
 @api_router.get("/revisions", response_model=List[Revisions])
 def get_revisions(
     entities: str = Query(..., description="Comma-separated list of entity IDs, e.g. Q42,L1"),
@@ -73,6 +86,9 @@ def get_revisions(
     Example:
         GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 200
         GET /api/v2/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
+
+    Caching: This endpoint is using an in-memory cached with a
+    timeout of 60s because the underlying data is not changing very often.
     """
     # Step 1: split entities string → list
     try:

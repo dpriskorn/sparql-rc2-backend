@@ -15,6 +15,10 @@ It supports contributors and data consumers in tracking
 changes to entities of interest, playing a crucial role 
 in maintaining data quality and consistency.
 
+## Caching
+This endpoint is using an in-memory cached with a 
+timeout of 60s because the underlying data is not changing very often.
+
 ## Deployment
 First stop, build and then start
 * `$ toolforge webservice buildservice stop`

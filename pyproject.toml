@@ -7,12 +7,13 @@ authors = [
 ]
 license = {text = "GPLv3+"}
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4.0"
 dependencies = [
     "pydantic (>=2.11.7,<3.0.0)",
     "fastapi (>=0.116.1,<0.117.0)",
     "pymysql (>=1.1.1,<2.0.0)",
-    "uvicorn (>=0.35.0,<0.36.0)"
+    "uvicorn (>=0.35.0,<0.36.0)",
+    "fastapi-cache2 (>=0.2.2,<0.3.0)",
 ]
 
 [tool.poetry.group.dev.dependencies]
