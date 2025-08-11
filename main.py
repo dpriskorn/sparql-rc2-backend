@@ -40,7 +40,7 @@ def get_db():
 
 @app.get("/revisions", response_model=List[Revisions])
 def get_revisions(
-        items: str = Query(..., description="Comma-separated list of item IDs, e.g. Q42,Q1"),
+        entities: str = Query(..., description="Comma-separated list of entity IDs, e.g. Q42,L1 (currently does not support EID)"),
         start_date: str = Query(
             default=(datetime.now(tz=UTC) - timedelta(days=7)).strftime("%Y%m%d%H%M%S"),
             description="Start date in YYYYMMDDHHMMSS, defaults to one week ago"
@@ -62,16 +62,17 @@ def get_revisions(
     Returns a list of revisions info grouped by page_id, including earliest and latest revisions and user edit counts.
     """
     # Gör om kommaseparerad sträng till lista
-    items_list = [i.strip() for i in items.split(",") if i.strip()]
+    entities_list = [i.strip() for i in entities.split(",") if i.strip()]
 
     db = get_db()
     cursor = db.cursor(DictCursor)
 
-    placeholders = ",".join(["%s"] * len(items_list))
+    placeholders = ",".join(["%s"] * len(entities_list))
+    # 0=items 102=entityschema 120=properties 146=lexeme
     sql_page_ids = f"""
         SELECT DISTINCT page_id
         FROM page
-        WHERE page_namespace IN (0,146)
+        WHERE page_namespace IN (0,102,120,146)
         AND page_title IN ({placeholders})
     """
 
@@ -80,7 +81,7 @@ def get_revisions(
         WHERE rev_page IN ({sql_page_ids})
         AND rev_timestamp BETWEEN %s AND %s
     """
-    params = items_list + [start_date, end_date]
+    params = entities_list + [start_date, end_date]
 
     if no_bots:
         sql_revisions += """
