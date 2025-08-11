@@ -78,7 +78,7 @@ def get_revisions(
         )
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=e.errors())
+        raise HTTPException(status_code=422, detail=str(e))
     except ValueError as e:
         # If you want to catch ValueError separately (like in your validators)
         raise HTTPException(status_code=422, detail=str(e))
