@@ -5,6 +5,7 @@ if "USER" not in os.environ:
 import pymysql
 from pymysql.cursors import DictCursor
 from typing import List
+import configparser
 
 from models.revision import Revision
 from models.revisions import Revisions
@@ -12,15 +13,26 @@ from models.user_count import UserCount
 
 app = FastAPI()
 
+TOOL_NAME = "sparql-rc2-backend"
+CREDENTIALS_PATH = f"/data/project/{TOOL_NAME}/replica.my.cnf"
+
 
 def get_db():
+    config = configparser.ConfigParser()
+    config.read(CREDENTIALS_PATH)
+
+    user = config.get("client", "user")
+    password = config.get("client", "password")
+
     return pymysql.connect(
-        host="wikidata.db.svc.eqiad.wmflabs",
-        user=os.environ["TOOLFORGE_USER"],
-        password=os.environ["TOOLFORGE_PASSWORD"],
+        host="wikidata.web.db.svc.wikimedia.cloud",
+        user=user,
+        password=password,
         database="wikidatawiki_p",
-        charset="utf8mb4"
+        charset="utf8mb4",
+        cursorclass=DictCursor
     )
+
 
 
 @app.get("/revisions", response_model=List[Revisions])
