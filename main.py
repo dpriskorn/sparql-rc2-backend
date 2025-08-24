@@ -73,7 +73,7 @@ def get_revisions(
     ),
     end_date: str = Query(
         default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"),
-        description='Start of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format. Defaults to 7 days before the current UTC time.',
+        description='Start of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format. Defaults to the current UTC time.',
     ),
     no_bots: bool = Query(
         default=False,
