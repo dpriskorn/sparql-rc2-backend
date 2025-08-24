@@ -104,6 +104,8 @@ def get_revisions(
             Defaults to the current UTC time.
         no_bots (bool, optional): If True, revisions made by bot accounts are excluded. Defaults to False.
         only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
+        exclude_users (str, optional): Comma-separated list of usernames to exclude
+                    (e.g., "User1,User2"). Defaults to an empty string (no exclusions).
 
     Returns:
         list[Revisions]: A list of aggregated revision objects matching the query parameters.
