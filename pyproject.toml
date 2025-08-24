@@ -1,6 +1,6 @@
 [project]
 name = "sparql-rc2-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = [
     {name = "Nizo Priskorn",email = "68460690+dpriskorn@users.noreply.github.com"}

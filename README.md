@@ -8,6 +8,9 @@ This backend provides a /revisions endpoint with the following capabilities:
 * Reports the total number of unique users who edited each entity.
 * Details the number of edits made by each user.
 * Includes page IDs, user IDs, entity IDs, and usernames in the response.
+* Allow for exclusion of users
+* Allow only getting unpatrolled revisions
+* Allow for excluding bot revisions
 
 This endpoint offers consumers a fast and comprehensive overview of edits 
 across many entities. 
@@ -18,3 +21,7 @@ in maintaining data quality and consistency.
 ## Caching
 This endpoint is using an in-memory cached with a 
 timeout of 60s because the underlying data is not changing very often.
+
+## Changelog
+* 0.1.0 Basic functionality
+* 0.2.0 Support for excluding users
