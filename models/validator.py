@@ -26,9 +26,16 @@ class Validator(BaseModel):
     # noinspection PyMethodParameters
     @field_validator("start_date", "end_date")
     def validate_timestamp_format(cls, v, info):
-        if not config.TIMESTAMP_PATTERN.match(v):
+        if config.DATE_ONLY_PATTERN.match(v):
+            # Expand to full timestamp
+            if info.field_name == "start_date":
+                return v + "000000"  # start of day
+            else:
+                return v + "235959"  # end of day
+        elif config.TIMESTAMP_PATTERN.match(v):
+            return v
+        else:
             raise ValueError(f"Invalid {info.field_name} format: {v}")
-        return v
 
     # noinspection PyMethodParameters
     @model_validator(mode="after")

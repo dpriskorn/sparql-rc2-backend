@@ -31,8 +31,8 @@ class TestValidator(unittest.TestCase):
             no_bots=True,
         )
         self.assertEqual(v.entities, ["Q1", "Q2"])
-        self.assertEqual(v.start_date, "20230101")
-        self.assertEqual(v.end_date, "20231231")
+        self.assertEqual(v.start_date, "20230101000000")
+        self.assertEqual(v.end_date, "20231231235959")
         self.assertTrue(v.no_bots)
 
     def test_not_unique(self):
@@ -78,5 +78,5 @@ class TestValidator(unittest.TestCase):
 
     def test_start_date_equal_end_date(self):
         v = Validator(entities=["Q1"], start_date="20230101", end_date="20230101")
-        self.assertEqual(v.start_date, "20230101")
-        self.assertEqual(v.end_date, "20230101")
+        self.assertEqual(v.start_date, "20230101000000")
+        self.assertEqual(v.end_date, "20230101235959")

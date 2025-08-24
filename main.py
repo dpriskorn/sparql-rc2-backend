@@ -68,9 +68,13 @@ def get_revisions(
     start_date: str = Query(
         default=(datetime.now(timezone.utc) - timedelta(days=7)).strftime(
             "%Y%m%d%H%M%S"
-        )
+        ),
+        description='Start of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format. Defaults to 7 days before the current UTC time.',
     ),
-    end_date: str = Query(default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")),
+    end_date: str = Query(
+        default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S"),
+        description='Start of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format. Defaults to 7 days before the current UTC time.',
+    ),
     no_bots: bool = Query(
         default=False,
         description="If True, revisions made by bot accounts are excluded. Defaults to False.",
@@ -98,9 +102,9 @@ def get_revisions(
 
     Args:
     * entities (str): Comma-separated list of entity IDs to query revisions for (e.g., "Q42,L1").
-    * start_date (str, optional): Start of the revision date range in "YYYYMMDDHHMMSS" format.
+    * start_date (str, optional): Start of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format.
             Defaults to 7 days before the current UTC time.
-    * end_date (str, optional): End of the revision date range in "YYYYMMDDHHMMSS" format.
+    * end_date (str, optional): End of the revision date range in "YYYYMMDDHHMMSS" or "YYYYMMDD" format.
             Defaults to the current UTC time.
     * no_bots (bool, optional): If True, revisions made by bot accounts are excluded. Defaults to False.
     * only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
