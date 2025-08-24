@@ -2,11 +2,9 @@ from pydantic import BaseModel
 
 
 class Splitter(BaseModel):
-    entities_string: str
-    entities: list[str] = []
+    string: str
+    list_: list[str] = []
 
-    def split_entities(self):
-        self.entities = [
-            e.strip() for e in self.entities_string.split(",") if e.strip()
-        ]
+    def split_comma_separated_string(self):
+        self.list_ = [e.strip() for e in self.string.split(",") if e.strip()]
         # raise ValueError("entities must be a comma-separated string")

@@ -65,21 +65,6 @@ class Read(BaseModel):
           'rev_user': Decimal('1433337'),
           'rev_user_text': b'MatSuBot'}
         """
-        # sql = f"""
-        #     SELECT
-        #     r.rev_id,
-        #     r.rev_page,
-        #     r.rev_user,
-        #     r.rev_user_text,
-        #     r.rev_timestamp,
-        #     p.page_title AS entity_id
-        #     FROM revision_compat r
-        #     JOIN page p ON r.rev_page = p.page_id
-        #     WHERE p.page_namespace IN (0,102,120,146)
-        #       AND p.page_title IN ({placeholders})
-        #       AND r.rev_timestamp BETWEEN %s AND %s
-        # """
-
         if self.params.only_unpatrolled:
             """The inner join discards all revisions not in recent changes"""
             sql = f"""
@@ -130,6 +115,12 @@ class Read(BaseModel):
                     SELECT ug_user FROM user_groups WHERE ug_group='bot'
                 )
             """
+        if self.params.exclude_users:
+            placeholders_exclude = ",".join(["%s"] * len(self.params.exclude_users))
+            sql += f"""
+                AND r.rev_user_text NOT IN ({placeholders_exclude})
+            """
+            params_list.extend(self.params.exclude_users)
 
         cursor.execute(sql, params_list)
         return cursor.fetchall()

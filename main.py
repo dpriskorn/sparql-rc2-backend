@@ -78,6 +78,10 @@ def get_revisions(
     only_unpatrolled: bool = Query(
         default=False, description="Only return unpatrolled edits"
     ),
+    exclude_users: str = Query(
+        default="",
+        description="Comma-separated list of usernames to exclude, e.g. User1,User2",
+    ),
 ):
     """
     Retrieve and aggregate revision data for one or more entities within a specified date range.
@@ -116,19 +120,22 @@ def get_revisions(
     """
     # Step 1: split entities string → list
     try:
-        splitter_ = Splitter(entities_string=entities)
-        splitter_.split_entities()
+        entity_splitter = Splitter(string=entities)
+        entity_splitter.split_comma_separated_string()
+        user_splitter = Splitter(string=exclude_users)
+        user_splitter.split_comma_separated_string()
     except ValidationError as e:
         # Forward the error to the user with status 422
         raise HTTPException(status_code=422, detail=sanitize_errors(e)) from e
     # Step 2: validate all input (entities already split)
     try:
         params = Validator(
-            entities=splitter_.entities,
+            entities=entity_splitter.list_,
             start_date=start_date,
             end_date=end_date,
             no_bots=no_bots,
             only_unpatrolled=only_unpatrolled,
+            exclude_users=user_splitter.list_,
         )
     except ValidationError as e:
         # Forward the error to the user with status 422

@@ -9,6 +9,7 @@ class Validator(BaseModel):
     end_date: str
     no_bots: bool = False
     only_unpatrolled: bool = False
+    exclude_users: list[str] = []
 
     # noinspection PyMethodParameters
     @field_validator("entities")
