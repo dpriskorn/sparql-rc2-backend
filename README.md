@@ -18,12 +18,3 @@ in maintaining data quality and consistency.
 ## Caching
 This endpoint is using an in-memory cached with a 
 timeout of 60s because the underlying data is not changing very often.
-
-## Deployment
-First stop, build and then start
-* `$ toolforge webservice buildservice stop`
-* `$ toolforge build start --use-latest-versions https://github.com/dpriskorn/sparql-rc2-backend.git`
-* `$ toolforge webservice buildservice restart --mount=none`
-
-Debug using
-* `$ webservice logs -f` 
