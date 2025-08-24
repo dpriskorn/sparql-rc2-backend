@@ -9,6 +9,7 @@ class Revision(BaseModel):
         "2" for autopatrolled actions
     see https://www.mediawiki.org/wiki/Manual:Recentchanges_table#rc_patrolled
     """
+
     rev_id: int
     rev_page: int
     rev_user: int
@@ -39,4 +40,3 @@ class Revision(BaseModel):
         if self.rc_patrolled == 0:
             return True
         return False
-

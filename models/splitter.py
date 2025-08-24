@@ -1,14 +1,12 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel
 
 
 class Splitter(BaseModel):
-    entities: list[str] | str  # accepts either raw string or list
+    entities_string: str
+    entities: list[str] = []
 
-    # noinspection PyMethodParameters
-    @field_validator("entities", mode="before")
-    def split_entities(cls, v):
-        if isinstance(v, str):
-            return [e.strip() for e in v.split(",") if e.strip()]
-        if isinstance(v, list):
-            return v
-        raise ValueError("entities must be a comma-separated string or list of strings")
+    def split_entities(self):
+        self.entities = [
+            e.strip() for e in self.entities_string.split(",") if e.strip()
+        ]
+        # raise ValueError("entities must be a comma-separated string")

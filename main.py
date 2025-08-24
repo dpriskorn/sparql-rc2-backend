@@ -1,17 +1,15 @@
 import logging
 import os
-from datetime import datetime, timezone, timedelta
-from typing import List, Any
-
-from fastapi import FastAPI, Query, APIRouter, HTTPException
-from fastapi.responses import RedirectResponse
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
+from typing import Any
 
+from fastapi import APIRouter, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.inmemory import InMemoryBackend
 from fastapi_cache.decorator import cache
-from fastapi.middleware.cors import CORSMiddleware
-
 from pydantic import ValidationError
 
 import config
@@ -27,6 +25,7 @@ if "USER" not in os.environ:
 logging.basicConfig(level=config.LOGLEVEL)
 logger = logging.getLogger(__name__)
 
+
 # noinspection PyShadowingNames,PyUnusedLocal
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -34,6 +33,7 @@ async def lifespan(app: FastAPI):
     FastAPICache.init(InMemoryBackend())
     yield
     # shutdown code (if needed)
+
 
 app = FastAPI(title="sparql-rc2-backend", lifespan=lifespan)
 app.add_middleware(
@@ -46,25 +46,38 @@ app.add_middleware(
 api_router = APIRouter(prefix="/api/v2")
 
 
-def sanitize_errors(errors: Any) -> List[Any]:
+def sanitize_errors(errors: Any) -> list[Any]:
     sanitized_errors_ = []
     for error in errors.errors():
-        sanitized_errors_.append({
-            "loc": list(error["loc"]),  # tuples to lists
-            "msg": error["msg"],
-            "type": error["type"]
-        })
+        sanitized_errors_.append(
+            {
+                "loc": list(error["loc"]),  # tuples to lists
+                "msg": error["msg"],
+                "type": error["type"],
+            }
+        )
     return sanitized_errors_
 
 
 @cache(expire=60)
-@api_router.get("/revisions", response_model=List[Revisions])
+@api_router.get("/revisions", response_model=list[Revisions])
 def get_revisions(
-    entities: str = Query(..., description="Comma-separated list of entity IDs, e.g. Q42,L1"),
-    start_date: str = Query(default=(datetime.now(timezone.utc) - timedelta(days=7)).strftime("%Y%m%d%H%M%S")),
+    entities: str = Query(
+        ..., description="Comma-separated list of entity IDs, e.g. Q42,L1"
+    ),
+    start_date: str = Query(
+        default=(datetime.now(timezone.utc) - timedelta(days=7)).strftime(
+            "%Y%m%d%H%M%S"
+        )
+    ),
     end_date: str = Query(default=datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")),
-    no_bots: bool = Query(default=False, description="If True, revisions made by bot accounts are excluded. Defaults to False."),
-    only_unpatrolled: bool = Query(default=False, description="Only return unpatrolled edits")
+    no_bots: bool = Query(
+        default=False,
+        description="If True, revisions made by bot accounts are excluded. Defaults to False.",
+    ),
+    only_unpatrolled: bool = Query(
+        default=False, description="Only return unpatrolled edits"
+    ),
 ):
     """
     Retrieve and aggregate revision data for one or more entities within a specified date range.
@@ -89,7 +102,7 @@ def get_revisions(
         only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
 
     Returns:
-        List[Revisions]: A list of aggregated revision objects matching the query parameters.
+        list[Revisions]: A list of aggregated revision objects matching the query parameters.
 
     Raises:
         Error: If input parameters are invalid (e.g., date format, entity IDs, not unique input).
@@ -103,22 +116,23 @@ def get_revisions(
     """
     # Step 1: split entities string → list
     try:
-        split_result = Splitter(entities=entities)
+        splitter_ = Splitter(entities_string=entities)
+        splitter_.split_entities()
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=sanitize_errors(e))
+        raise HTTPException(status_code=422, detail=sanitize_errors(e)) from e
     # Step 2: validate all input (entities already split)
     try:
         params = Validator(
-            entities=split_result.entities,
+            entities=splitter_.entities,
             start_date=start_date,
             end_date=end_date,
             no_bots=no_bots,
-            only_unpatrolled=only_unpatrolled
+            only_unpatrolled=only_unpatrolled,
         )
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=sanitize_errors(e))
+        raise HTTPException(status_code=422, detail=sanitize_errors(e)) from e
 
     # Step 3: instantiate Read with params (assuming you changed Read to accept params)
     read = Read(params=params)
@@ -135,7 +149,7 @@ def get_revisions(
         aggregator = Aggregator(revisions=revisions)
     except ValidationError as e:
         # Forward the error to the user with status 422
-        raise HTTPException(status_code=422, detail=sanitize_errors(e))
+        raise HTTPException(status_code=422, detail=sanitize_errors(e)) from e
     return aggregator.aggregate()
 
 

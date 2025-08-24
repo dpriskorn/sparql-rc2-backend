@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -8,7 +8,7 @@ from models.user_count import UserCount
 
 
 class Aggregator(BaseModel):
-    revisions: List[Dict[str, str | int]]
+    revisions: list[dict[str, Any]]
 
     def aggregate(self):
         revisions_by_page = {}
@@ -27,19 +27,28 @@ class Aggregator(BaseModel):
                 }
                 continue
 
-            if revisions_by_page[page_key]["earliest"]["rev_timestamp"] > revision["rev_timestamp"]:
+            if (
+                revisions_by_page[page_key]["earliest"]["rev_timestamp"]
+                > revision["rev_timestamp"]
+            ):
                 revisions_by_page[page_key]["earliest"] = revision.copy()
-            if revisions_by_page[page_key]["latest"]["rev_timestamp"] < revision["rev_timestamp"]:
+            if (
+                revisions_by_page[page_key]["latest"]["rev_timestamp"]
+                < revision["rev_timestamp"]
+            ):
                 revisions_by_page[page_key]["latest"] = revision.copy()
 
-            revisions_by_page[page_key]["users"][user_key] = revisions_by_page[page_key]["users"].get(user_key, 0) + 1
+            revisions_by_page[page_key]["users"][user_key] = (
+                revisions_by_page[page_key]["users"].get(user_key, 0) + 1
+            )
 
         result = []
         for page_data in revisions_by_page.values():
             users = [
                 UserCount(user_id=int(uid), username=uname, count=count)
                 for uid, uname, count in (
-                    (u.split("|", 1)[0], u.split("|", 1)[1], c) for u, c in page_data["users"].items()
+                    (u.split("|", 1)[0], u.split("|", 1)[1], c)
+                    for u, c in page_data["users"].items()
                 )
             ]
 

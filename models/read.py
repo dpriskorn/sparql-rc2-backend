@@ -1,4 +1,7 @@
 import os
+
+from models.exceptions import DbConnectionError
+
 # Fix bug with pymysql
 if "USER" not in os.environ:
     os.environ["USER"] = "tools.sparql-rc2-backend"
@@ -6,6 +9,7 @@ import pymysql
 from pydantic import BaseModel
 from pymysql.connections import Connection
 from pymysql.cursors import DictCursor
+
 from models.validator import Validator  # your Pydantic model
 
 
@@ -19,10 +23,14 @@ class Read(BaseModel):
     def connect(self):
         # Opens a new DB connection and assigns to self.db
         if self.db is None:
+            user = os.environ.get("TOOL_REPLICA_USER")
+            password = os.environ.get("TOOL_REPLICA_PASSWORD")
+            if not password or not user:
+                raise OSError("Could not get environment variables")
             self.db = pymysql.connect(
                 host="wikidatawiki.web.db.svc.wikimedia.cloud",
-                user=os.environ.get("TOOL_REPLICA_USER"),
-                password=os.environ.get("TOOL_REPLICA_PASSWORD"),
+                user=user,
+                password=password,
                 database="wikidatawiki_p",
                 charset="utf8mb4",
                 cursorclass=DictCursor,
@@ -32,6 +40,8 @@ class Read(BaseModel):
     def fetch_revisions(self):
         # Make sure we have a DB connection
         self.connect()
+        if not self.db:
+            raise DbConnectionError()
         cursor = self.db.cursor()
         placeholders = ",".join(["%s"] * len(self.params.entities))
         """
@@ -90,7 +100,7 @@ class Read(BaseModel):
                           AND r.rev_timestamp BETWEEN %s AND %s
                     """
         else:
-            """The left join includes all revisions not in recent changes 
+            """The left join includes all revisions not in recent changes
             and fills rc_patrolled with null values"""
             sql = f"""
                 SELECT
@@ -108,7 +118,11 @@ class Read(BaseModel):
                   AND p.page_title IN ({placeholders})
                   AND r.rev_timestamp BETWEEN %s AND %s
             """
-        params_list = self.params.entities + [self.params.start_date, self.params.end_date]
+        params_list = [
+            *self.params.entities,
+            self.params.start_date,
+            self.params.end_date,
+        ]
 
         if self.params.no_bots:
             sql += """

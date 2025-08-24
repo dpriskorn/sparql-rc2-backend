@@ -1,4 +1,3 @@
-from typing import List
 from pydantic import BaseModel
 
 from models.revision import Revision
@@ -11,4 +10,4 @@ class Revisions(BaseModel):
     earliest: Revision
     latest: Revision
     note: str
-    users: List[UserCount]
+    users: list[UserCount]
