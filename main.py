@@ -35,7 +35,7 @@ async def lifespan(app: FastAPI):
     # shutdown code (if needed)
 
 
-app = FastAPI(title="sparql-rc2-backend", lifespan=lifespan)
+app = FastAPI(title="sparql-rc2-backend", lifespan=lifespan, version="0.2.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # or list of allowed origins
@@ -88,7 +88,7 @@ def get_revisions(
 
     This endpoint accepts a comma-separated list of entity IDs (e.g., Wikidata Q-IDs) and fetches
     all revisions made to those entities between the given start and end dates. It can optionally
-    exclude revisions made by bot accounts.
+    exclude revisions made by bot accounts or a list of users.
 
     The process includes:
     1. Parsing the entity list.
@@ -108,14 +108,14 @@ def get_revisions(
                     (e.g., "User1,User2"). Defaults to an empty string (no exclusions).
 
     Returns:
-        list[Revisions]: A list of aggregated revision objects matching the query parameters.
+    * list[Revisions]: A list of aggregated revision objects matching the query parameters.
 
     Raises:
-        Error: If input parameters are invalid (e.g., date format, entity IDs, not unique input).
+    * Error: If input parameters are invalid (e.g., date format, entity IDs, not unique input).
 
     Examples:
-    * GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true&exclude_users=So9q -> 200
-    * GET /api/v2/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
+    * GET /api/v1/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true&exclude_users=So9q -> 200
+    * GET /api/v1/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
 
     Caching: This endpoint is using an in-memory cached with a
     timeout of 60s because the underlying data is not changing very often.
