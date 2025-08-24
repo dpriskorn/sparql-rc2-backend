@@ -43,7 +43,7 @@ app.add_middleware(
     allow_methods=["GET"],
     allow_headers=["*"],
 )
-api_router = APIRouter(prefix="/api/v2")
+api_router = APIRouter(prefix="/api/v1")
 
 
 def sanitize_errors(errors: Any) -> list[Any]:
@@ -97,14 +97,14 @@ def get_revisions(
     4. Aggregating the results for a summarized response.
 
     Args:
-        entities (str): Comma-separated list of entity IDs to query revisions for (e.g., "Q42,L1").
-        start_date (str, optional): Start of the revision date range in "YYYYMMDDHHMMSS" format.
+    * entities (str): Comma-separated list of entity IDs to query revisions for (e.g., "Q42,L1").
+    * start_date (str, optional): Start of the revision date range in "YYYYMMDDHHMMSS" format.
             Defaults to 7 days before the current UTC time.
-        end_date (str, optional): End of the revision date range in "YYYYMMDDHHMMSS" format.
+    * end_date (str, optional): End of the revision date range in "YYYYMMDDHHMMSS" format.
             Defaults to the current UTC time.
-        no_bots (bool, optional): If True, revisions made by bot accounts are excluded. Defaults to False.
-        only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
-        exclude_users (str, optional): Comma-separated list of usernames to exclude
+    * no_bots (bool, optional): If True, revisions made by bot accounts are excluded. Defaults to False.
+    * only_unpatrolled (bool, optional): If True, revisions that are patrolled are excluded. Defaults to False.
+    * exclude_users (str, optional): Comma-separated list of usernames to exclude
                     (e.g., "User1,User2"). Defaults to an empty string (no exclusions).
 
     Returns:
@@ -113,9 +113,9 @@ def get_revisions(
     Raises:
         Error: If input parameters are invalid (e.g., date format, entity IDs, not unique input).
 
-    Example:
-        GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 200
-        GET /api/v2/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
+    Examples:
+    * GET /api/v2/revisions?entities=Q42,L1&start_date=20250701000000&end_date=20250707235959&no_bots=true&exclude_users=So9q -> 200
+    * GET /api/v2/revisions?entities=Q42;L1&start_date=20250701000000&end_date=20250707235959&no_bots=true -> 422
 
     Caching: This endpoint is using an in-memory cached with a
     timeout of 60s because the underlying data is not changing very often.
